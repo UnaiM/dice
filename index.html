@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Dice Roller</title>
+    <style>
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://cdn.babylonjs.com/ammo.js"></script>
+    <script type="module">
+
+import * as THREE from 'https://unpkg.com/three/build/three.module.js'
+import {EXRLoader} from 'https://unpkg.com/three/examples/jsm/loaders/EXRLoader.js'
+import {OBJLoader2Parallel} from 'https://unpkg.com/three/examples/jsm/loaders/OBJLoader2Parallel.js'
+import {OrbitControls} from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js'
+
+Ammo().then(ammo => {
+  const renderer = new THREE.WebGLRenderer({'antialias': true})
+  const aniso = Math.min(4, renderer.capabilities.getMaxAnisotropy())
+
+  let envmap
+  const dice = ['d4a', 'd4b', 'd6', 'd8', 'd100', 'd10', 'd12', 'd20']
+  const meshes = new Array(dice.length)
+  const normals = new Array(dice.length)
+  const numbers = new Array(dice.length)
+  const rbds = new Array(dice.length)
+  const poss = []
+  const quats = []
+  let loaded = 0 // Tried with THREE.DefaultLoadingManager.onLoad() and it didn't work.
+
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  new EXRLoader(THREE.DefaultLoadingManager).load('env.exr', exr => {
+    envmap = pmrem.fromEquirectangular(exr).texture
+    pmrem.dispose()
+    exr.mapping = THREE.EquirectangularReflectionMapping
+    scene.background = exr
+    scene.environment = envmap
+    loaded += 1
+  })
+  pmrem.compileEquirectangularShader()
+
+  dice.forEach((die, i) => {
+    poss.push([(i%4 * 2 - 3), 3, (i<4 ? -1.2 : 1.2)])
+    quats.push(new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize(),
+      2*Math.PI*Math.random()
+    ))
+    if (die != 'd10') {
+      const die_ = die.substring(0, 3)
+      new OBJLoader2Parallel(THREE.DefaultLoadingManager).load(`geo/${die_}.obj`, obj => {
+        let mesh = obj.children[0]
+        mesh.material.dispose()
+        obj.clear()
+        setup_mesh(mesh, i)
+        if (die == 'd100') {
+          setup_mesh(new THREE.Mesh(mesh.geometry, null), i+1)
+        }
+        loaded += 1
+      })
+      new THREE.FileLoader().load(`data/${die_}.json`, data => {
+        setup_rbd(data, i)
+        if (die == 'd100') {
+          setup_rbd(data, i+1)
+        }
+        loaded += 1
+      })
+    }
+    new EXRLoader(THREE.DefaultLoadingManager).load(`normals/${die}.exr`, norm => {
+      norm.anisotropy = aniso
+      normals[i] = norm
+      assign(i, false)
+      loaded += 1
+    })
+    new THREE.ImageLoader().load(`numbers/${die}.svg`, nums => {
+      nums.width *= 4
+      nums.height *= 4
+      numbers[i] = new THREE.Texture(
+        nums,
+        THREE.UVMapping,
+        THREE.ClampToEdgeWrapping,
+        THREE.ClampToEdgeWrapping,
+        THREE.LinearFilter,
+        THREE.LinearMipmapLinearFilter,
+        THREE.LuminanceFormat,
+        THREE.UnsignedByteType,
+        aniso,
+        THREE.sRGBEncoding
+      )
+      numbers[i].needsUpdate = true
+      assign(i, true)
+      loaded += 1
+    })
+  })
+
+  document.body.appendChild(renderer.domElement)
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.outputEncoding = THREE.sRGBEncoding
+  renderer.physicallyCorrectLights = true
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFShadowMap
+
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(
+    40,
+    window.innerWidth/window.innerHeight,
+    0.1,
+    1000
+  )
+  camera.position.x = 7
+  camera.position.y = 4
+  camera.position.z = 8
+  const controls = new OrbitControls(camera, renderer.domElement)
+
+  const clock = new THREE.Clock()
+  const col_cfg = new ammo.btDefaultCollisionConfiguration()
+  const world = new ammo.btDiscreteDynamicsWorld(
+    new ammo.btCollisionDispatcher(col_cfg),
+    new ammo.btDbvtBroadphase(),
+    new ammo.btSequentialImpulseConstraintSolver(),
+    col_cfg);
+  world.setGravity(new ammo.btVector3(0, -9.8, 0))
+  const tmp_xfm = new ammo.btTransform()
+  animate()
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(40, 40),
+    new THREE.MeshPhysicalMaterial({'color': 0x999999, 'envMapIntensity': 0.2, 'roughness': 0.35})
+  )
+  scene.add(floor)
+  floor.matrixAutoUpdate = false
+  floor.rotation.x = -Math.PI / 2
+  floor.receiveShadow = true
+  floor.updateMatrix()
+  const rbd = make_rbd(
+    new ammo.btStaticPlaneShape(new ammo.btVector3(0, 1, 0), 0),
+    0,
+    [0, 0, 0],
+    [0, 0, 0, 1]
+  )
+  rbd.setDamping(0.5, 0.5)
+
+  const light = new THREE.DirectionalLight(0xffeecc, 1)
+  scene.add(light)
+  light.castShadow = true
+  light.position.x = 6
+  light.position.y = 10
+  light.position.z = 10
+  light.shadow.mapSize = new THREE.Vector2(1024, 1024)
+  light.shadow.radius = 5
+
+  function animate() {
+    if (loaded == 31) {
+      world.stepSimulation(clock.getDelta(), 100, 0.004)
+    }
+    rbds.forEach((rbd, i) => {
+      if (rbd && meshes[i]) {
+        const state = rbd.getMotionState()
+        if (state) {
+          state.getWorldTransform(tmp_xfm)
+          const pos = tmp_xfm.getOrigin()
+          const rot = tmp_xfm.getRotation()
+          meshes[i].position.set(100*pos.x(), 100*pos.y(), 100*pos.z())
+          meshes[i].quaternion.set(rot.x(), rot.y(), rot.z(), rot.w())
+        }
+      }
+    })
+    renderer.render(scene, camera)
+  	requestAnimationFrame(animate)
+  }
+
+  function assign(i, do_nums) {
+    const value = do_nums ? numbers[i] : normals[i]
+    if (value && meshes[i]) {
+      meshes[i].material.forEach((mat, m) => {
+        if (!do_nums || m==1) {
+          const attr = do_nums ? 'alphaMap' : 'normalMap'
+          if (!mat[attr]) {
+            mat[attr] = value
+            mat.needsUpdate = true
+          }
+        }
+      })
+    }
+  }
+
+  function setup_mesh(mesh, i) {
+    scene.add(mesh)
+    mesh.geometry.clearGroups()
+    mesh.geometry.addGroup(0, Infinity, 0)
+    mesh.geometry.addGroup(0, Infinity, 1)
+    mesh.material = [
+      new THREE.MeshPhysicalMaterial({
+        'color': `hsl(${i*360/dice.length}, 97%, 25%)`,
+        'envMapIntensity': 0.2,
+        'ior': 1.2,
+        'roughness': 0.12
+      }),
+      new THREE.MeshPhysicalMaterial({
+        'color': 0xcccccc,
+        'envMapIntensity': 0.2,
+        'ior': 1.2,
+        'roughness': 0.2,
+        'transparent': true
+      })
+    ]
+    mesh.position.set(poss[i][0], poss[i][1], poss[i][2])
+    mesh.quaternion.set(quats[i].x, quats[i].y, quats[i].z, quats[i].w)
+    mesh.castShadow = true
+    mesh.receiveShadow = true
+    meshes[i] = mesh
+    assign(i, false)
+    assign(i, true)
+  }
+
+  function setup_rbd(data, i) {
+    data = JSON.parse(data)
+    const shape = new ammo.btConvexHullShape()
+    data.hull.forEach(point => {
+      shape.addPoint(new ammo.btVector3(point[0]/100, point[1]/100, point[2]/100))
+    })
+    shape.setMargin(data.margin/100)
+    rbds[i] = make_rbd(
+      shape,
+      0.035,
+      [poss[i][0], poss[i][1], poss[i][2]],
+      [quats[i].x, quats[i].y, quats[i].z, quats[i].w]
+    )
+    rbds[i].setDamping(0.5, 0.5)
+  }
+
+  function make_rbd(shape, mass, pos, quat) {
+    const xfm = new ammo.btTransform()
+    xfm.setIdentity()
+    xfm.setOrigin(new ammo.btVector3(pos[0]/100, pos[1]/100, pos[2]/100))
+    xfm.setRotation(new ammo.btQuaternion(quat[0], quat[1], quat[2], quat[3]))
+    const inertia = new ammo.btVector3(0, 0, 0)
+    shape.calculateLocalInertia(mass, inertia)
+    const rbd = new ammo.btRigidBody(new ammo.btRigidBodyConstructionInfo(
+      mass,
+      new ammo.btDefaultMotionState(xfm),
+      shape,
+      inertia
+    ))
+    world.addRigidBody(rbd)
+    return rbd
+  }
+})
+
+    </script>
+  </body>
+</html>
