@@ -1,2 +1,4 @@
-# dice
-Role-playing dice roller with a focus on streaming
+dice (WIP)
+==========
+
+**Role-playing dice roller with a focus on streaming**
