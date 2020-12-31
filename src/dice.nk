@@ -1,0 +1,344 @@
+#! C:/Program Files/Nuke12.2v3/nuke-12.2.3.dll -nx
+#write_info Write1 file:"../normals/[lindex "d4a d4b d6 d8 d100 d10 d12 d20" [frame]].exr" format:"504 436 1" chans:":rgba.red:rgba.green:rgba.blue:" framerange:"0 7" fps:"0" colorspace:"default" datatype:"16 bit half" transfer:"unknown" views:"main" colorManagement:"Nuke"
+version 12.2 v3
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="-1" y="-8" w="2560" h="1417" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1780" stretch="1"/>
+            <splitter orientation="2">
+                <split size="807"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="568"/>
+                <dock id="" activePageId="DAG.1">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="732"/>
+            <dock id="" activePageId="Properties.1" focus="true">
+                <page id="Properties.1"/>
+                <page id="uk.co.thefoundry.scripteditor.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name C:/Users/Unai/Documents/dice/src/dice.nk
+ project_directory "\[python \{nuke.script_directory()\}]"
+ frame 0
+ first_frame 0
+ last_frame 7
+ format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+Read {
+ inputs 0
+ file_type png
+ file "numbers_png/\[lindex \"d4a d4b d6 d8 d100 d10 d12 d20\" \[frame]].png"
+ first 0
+ last 7
+ origset true
+ name Read3
+ xpos -944
+ ypos -641
+ postage_stamp false
+}
+Invert {
+ channels alpha
+ name Invert1
+ xpos -944
+ ypos -605
+ addUserKnob {20 User}
+ addUserKnob {7 kapow l "" +STARTLINE}
+ kapow 1.5
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur1
+ xpos -944
+ ypos -569
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur2
+ xpos -944
+ ypos -533
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur3
+ xpos -944
+ ypos -497
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur4
+ xpos -944
+ ypos -461
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur5
+ xpos -944
+ ypos -425
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur6
+ xpos -944
+ ypos -389
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur7
+ xpos -944
+ ypos -353
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur8
+ xpos -944
+ ypos -317
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur9
+ xpos -944
+ ypos -281
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur10
+ xpos -944
+ ypos -245
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur11
+ xpos -944
+ ypos -209
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur12
+ xpos -944
+ ypos -173
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur13
+ xpos -944
+ ypos -137
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur14
+ xpos -944
+ ypos -101
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur15
+ xpos -944
+ ypos -65
+}
+Blur {
+ channels alpha
+ size {{"\[string range \[knob name] 4 10]"}}
+ mix {{"1 / pow(size, Invert1.kapow)"}}
+ name Blur16
+ xpos -944
+ ypos -29
+}
+Dot {
+ name Dot1
+ xpos -910
+ ypos 64
+}
+set N15257800 [stack 0]
+Crop {
+ box {0 219.6000061 488 236.6000061}
+ crop false
+ name Crop1
+ xpos -803
+ ypos 91
+}
+push $N15257800
+ColorLookup {
+ channels alpha
+ lut {master {curve C k 0 s2.5 1 s2.599999905}
+   red {}
+   green {}
+   blue {}
+   alpha {}}
+ name ColorLookup1
+ xpos -944
+ ypos 100
+}
+set N15257000 [stack 0]
+Emboss {
+ channels alpha
+ edgechannels alpha
+ name Emboss2
+ xpos -895
+ ypos 156
+}
+push $N15257000
+Emboss {
+ channels alpha
+ Angle 90
+ edgechannels alpha
+ name Emboss1
+ xpos -1005
+ ypos 157
+}
+Shuffle2 {
+ inputs 2
+ fromInput1 {{0} B A}
+ in1 alpha
+ fromInput2 {{1} B A}
+ in2 alpha
+ mappings "4 black -1 -1 rgba.blue 0 2 black -1 -1 rgba.alpha 0 3 rgba.alpha 0 0 rgba.red 0 0 rgba.alpha 1 0 rgba.green 0 1"
+ name Shuffle1
+ xpos -949
+ ypos 217
+}
+Reformat {
+ type scale
+ resize none
+ center false
+ filter impulse
+ name Reformat1
+ xpos -949
+ ypos 241
+}
+Add {
+ channels {rgba.red rgba.green -rgba.blue none}
+ value -0.5
+ name Add1
+ xpos -949
+ ypos 265
+}
+set C15255800 [stack 0]
+Multiply {
+ channels {rgba.red rgba.green -rgba.blue none}
+ value 10
+ name Multiply1
+ xpos -949
+ ypos 289
+}
+Read {
+ inputs 0
+ file_type exr
+ file "normals_orig/\[lindex \"d4a d4b d6 d8 d10 d10 d12 d20\" \[frame]].exr"
+ first 0
+ last 7
+ origset true
+ name Read1
+ xpos -653
+ ypos -295
+ postage_stamp false
+}
+clone $C15255800 {
+ xpos -653
+ ypos -259
+ selected false
+}
+Multiply {
+ channels {rgba.red rgba.green -rgba.blue none}
+ value 2
+ name Multiply2
+ xpos -653
+ ypos -235
+}
+Merge2 {
+ inputs 2
+ operation plus
+ Achannels {rgba.red rgba.green -rgba.blue none}
+ Bchannels {rgba.red rgba.green -rgba.blue none}
+ output {rgba.red rgba.green -rgba.blue none}
+ name Merge1
+ xpos -659
+ ypos 283
+}
+Expression {
+ expr0 "r / 2 + 0.5"
+ expr1 "g / 2 + 0.5"
+ expr2 "sqrt(1 - pow(r, 2) - pow(g, 2)) / 2 + 0.5"
+ channel3 none
+ name Expression1
+ xpos -659
+ ypos 319
+}
+Clamp {
+ name Clamp1
+ xpos -659
+ ypos 343
+}
+set N151f3400 [stack 0]
+Viewer {
+ frame_range 0-7
+ name Viewer1
+ xpos -878
+ ypos 431
+}
+push $N151f3400
+Write {
+ file "../normals/\[lindex \"d4a d4b d6 d8 d100 d10 d12 d20\" \[frame]].exr"
+ file_type exr
+ compression DWAB
+ first_part rgba
+ checkHashOnRead false
+ version 49
+ name Write1
+ xpos -659
+ ypos 435
+}
