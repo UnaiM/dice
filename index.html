@@ -6,10 +6,29 @@
     <style>
       body {
         margin: 0;
+        padding-top: 0.7em;
+        position: absolute;
+        top: 0;
+        bottom: 2.1em;
+        left: 0;
+        right: 0;
+      }
+      #view {
+        height: 100%;
+        margin-top: 0.7em;
       }
     </style>
   </head>
   <body>
+    BASE
+    <label>Colour<input id="bcol" type="color" value="#0066ff"></label>
+    <label>Rough<input id="brou" type="range" min="0" max="1" step="any" value="0.12"></label>
+    <label><input id="bmet" type="checkbox">Metal</label>
+    &nbsp;/ &nbsp;NUMBERS
+    <label>Colour<input id="ncol" type="color" value="#ffffff"></label>
+    <label>Rough<input id="nrou" type="range" min="0" max="1" step="any" value="0.2"></label>
+    <label><input id="nmet" type="checkbox">Metal</label>
+    <div id="view"></div>
     <script src="https://cdn.babylonjs.com/ammo.js"></script>
     <script type="module">
 
@@ -101,8 +120,9 @@ Ammo().then(ammo => {
     })
   })
 
-  document.body.appendChild(renderer.domElement)
-  renderer.setSize(window.innerWidth, window.innerHeight)
+  const view = document.getElementById('view')
+  view.appendChild(renderer.domElement)
+  renderer.setSize(view.clientWidth, view.clientHeight)
   renderer.outputEncoding = THREE.sRGBEncoding
   // renderer.physicallyCorrectLights = true
   renderer.shadowMap.enabled = true
@@ -111,7 +131,7 @@ Ammo().then(ammo => {
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(
     40,
-    window.innerWidth/window.innerHeight,
+    view.clientWidth/view.clientHeight,
     0.1,
     1000
   )
@@ -185,23 +205,41 @@ Ammo().then(ammo => {
     }
   }
 
+  const ui = {}
+  for (name of ['bcol', 'brou', 'bmet', 'ncol', 'nrou', 'nmet']) {
+    ui[name] = document.getElementById(name)
+  }
+  ui.bcol.addEventListener('input', chbmat)
+  ui.brou.addEventListener('input', chbmat)
+  ui.bmet.addEventListener('change', chbmat)
+  ui.ncol.addEventListener('input', chnmat)
+  ui.nrou.addEventListener('input', chnmat)
+  ui.nmet.addEventListener('change', chnmat)
+  function chbmat() {
+    meshes.forEach(mesh => {
+      mesh.material[0].color = new THREE.Color(ui.bcol.value).convertSRGBToLinear().lerp(new THREE.Color(0x111111), 0.3)
+      mesh.material[0].roughness = ui.brou.value
+      mesh.material[0].metalness = ui.bmet.checked ? 1 : 0
+      mesh.material[0].needsUpdate = true
+    })
+  }
+  function chnmat() {
+    meshes.forEach(mesh => {
+      mesh.material[1].color = new THREE.Color(ui.ncol.value).convertSRGBToLinear().lerp(new THREE.Color(0x111111), 0.3)
+      mesh.material[1].roughness = ui.nrou.value
+      mesh.material[1].metalness = ui.nmet.checked ? 1 : 0
+      mesh.material[1].needsUpdate = true
+    })
+  }
+
   function setup_mesh(mesh, i) {
     scene.add(mesh)
     mesh.geometry.clearGroups()
     mesh.geometry.addGroup(0, Infinity, 0)
     mesh.geometry.addGroup(0, Infinity, 1)
     mesh.material = [
-      new THREE.MeshPhysicalMaterial({
-        'color': `hsl(${i*360/dice.length}, 97%, 25%)`,
-        'ior': 1.2,
-        'roughness': 0.12
-      }),
-      new THREE.MeshPhysicalMaterial({
-        'color': 0xcccccc,
-        'ior': 1.2,
-        'roughness': 0.2,
-        'transparent': true
-      })
+      new THREE.MeshPhysicalMaterial({'ior': 1.2}),
+      new THREE.MeshPhysicalMaterial({'ior': 1.2, 'transparent': true})
     ]
     mesh.position.set(poss[i][0], poss[i][1], poss[i][2])
     mesh.quaternion.set(quats[i].x, quats[i].y, quats[i].z, quats[i].w)
@@ -210,6 +248,8 @@ Ammo().then(ammo => {
     meshes[i] = mesh
     assign(i, false)
     assign(i, true)
+    chbmat()
+    chnmat()
   }
 
   function setup_rbd(data, i) {
