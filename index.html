@@ -22,11 +22,11 @@
   <body>
     BASE
     <label>Colour<input id="bcol" type="color" value="#0066ff"></label>
-    <label>Rough<input id="brou" type="range" min="0" max="1" step="any" value="0.12"></label>
+    <label>Rough<input id="brou" type="range" min="0" max="1" step="any" value="0.35"></label>
     <label><input id="bmet" type="checkbox">Metal</label>
     &nbsp;/ &nbsp;NUMBERS
     <label>Colour<input id="ncol" type="color" value="#ffffff"></label>
-    <label>Rough<input id="nrou" type="range" min="0" max="1" step="any" value="0.2"></label>
+    <label>Rough<input id="nrou" type="range" min="0" max="1" step="any" value="0.45"></label>
     <label><input id="nmet" type="checkbox">Metal</label>
     <div id="view"></div>
     <script src="https://cdn.babylonjs.com/ammo.js"></script>
@@ -218,7 +218,7 @@ Ammo().then(ammo => {
   function chbmat() {
     meshes.forEach(mesh => {
       mesh.material[0].color = new THREE.Color(ui.bcol.value).convertSRGBToLinear().lerp(new THREE.Color(0x080808), 0.3)
-      mesh.material[0].roughness = ui.brou.value
+      mesh.material[0].roughness = ui.brou.value * ui.brou.value
       mesh.material[0].metalness = ui.bmet.checked ? 1 : 0
       mesh.material[0].needsUpdate = true
       mesh.material[0].envMapIntensity = ui.bmet.checked ? 1 : 0
@@ -227,7 +227,7 @@ Ammo().then(ammo => {
   function chnmat() {
     meshes.forEach(mesh => {
       mesh.material[1].color = new THREE.Color(ui.ncol.value).convertSRGBToLinear().lerp(new THREE.Color(0x080808), 0.3)
-      mesh.material[1].roughness = ui.nrou.value
+      mesh.material[1].roughness = ui.nrou.value * ui.nrou.value
       mesh.material[1].metalness = ui.nmet.checked ? 1 : 0
       mesh.material[1].needsUpdate = true
       mesh.material[1].envMapIntensity = ui.nmet.checked ? 1 : 0
