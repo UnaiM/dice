@@ -217,7 +217,7 @@ Ammo().then(ammo => {
   ui.nmet.addEventListener('change', chnmat)
   function chbmat() {
     meshes.forEach(mesh => {
-      mesh.material[0].color = new THREE.Color(ui.bcol.value).convertSRGBToLinear().lerp(new THREE.Color(0x111111), 0.3)
+      mesh.material[0].color = new THREE.Color(ui.bcol.value).convertSRGBToLinear().lerp(new THREE.Color(0x080808), 0.3)
       mesh.material[0].roughness = ui.brou.value
       mesh.material[0].metalness = ui.bmet.checked ? 1 : 0
       mesh.material[0].needsUpdate = true
@@ -226,7 +226,7 @@ Ammo().then(ammo => {
   }
   function chnmat() {
     meshes.forEach(mesh => {
-      mesh.material[1].color = new THREE.Color(ui.ncol.value).convertSRGBToLinear().lerp(new THREE.Color(0x111111), 0.3)
+      mesh.material[1].color = new THREE.Color(ui.ncol.value).convertSRGBToLinear().lerp(new THREE.Color(0x080808), 0.3)
       mesh.material[1].roughness = ui.nrou.value
       mesh.material[1].metalness = ui.nmet.checked ? 1 : 0
       mesh.material[1].needsUpdate = true
