@@ -61,7 +61,7 @@ Ammo().then(ammo => {
     pmrem.dispose()
     exr.mapping = THREE.EquirectangularReflectionMapping
     scene.background = exr
-    // scene.environment = envmap
+    scene.environment = envmap
     regions2lights(mediancut(exr.image.data, exr.image.width, exr.image.height, 3, true), lights, 40, 20, 20, 256, 0.005)
     loaded += 1
   })
@@ -153,7 +153,7 @@ Ammo().then(ammo => {
 
   const floor = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(40, 40),
-    new THREE.MeshPhysicalMaterial({'color': 0x999999, 'roughness': 0.35})
+    new THREE.MeshPhysicalMaterial({'color': 0x999999, 'roughness': 0.35, 'envMapIntensity': 0})
   )
   scene.add(floor)
   floor.matrixAutoUpdate = false
@@ -221,6 +221,7 @@ Ammo().then(ammo => {
       mesh.material[0].roughness = ui.brou.value
       mesh.material[0].metalness = ui.bmet.checked ? 1 : 0
       mesh.material[0].needsUpdate = true
+      mesh.material[0].envMapIntensity = ui.bmet.checked ? 1 : 0
     })
   }
   function chnmat() {
@@ -229,6 +230,7 @@ Ammo().then(ammo => {
       mesh.material[1].roughness = ui.nrou.value
       mesh.material[1].metalness = ui.nmet.checked ? 1 : 0
       mesh.material[1].needsUpdate = true
+      mesh.material[1].envMapIntensity = ui.nmet.checked ? 1 : 0
     })
   }
 
