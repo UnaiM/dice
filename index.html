@@ -18,6 +18,9 @@ import {EXRLoader} from 'https://unpkg.com/three/examples/jsm/loaders/EXRLoader.
 import {OBJLoader2Parallel} from 'https://unpkg.com/three/examples/jsm/loaders/OBJLoader2Parallel.js'
 import {OrbitControls} from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js'
 
+import {mediancut} from 'https://unaim.github.io/lightgen.js/lightgen.js'
+import {regions2lights} from 'https://unaim.github.io/lightgen.js/lightgen_three.js'
+
 Ammo().then(ammo => {
   const renderer = new THREE.WebGLRenderer({'antialias': true})
   const aniso = Math.min(4, renderer.capabilities.getMaxAnisotropy())
@@ -32,13 +35,15 @@ Ammo().then(ammo => {
   const quats = []
   let loaded = 0 // Tried with THREE.DefaultLoadingManager.onLoad() and it didn't work.
 
+  const lights = new THREE.Group()
   const pmrem = new THREE.PMREMGenerator(renderer)
   new EXRLoader(THREE.DefaultLoadingManager).load('env.exr', exr => {
     envmap = pmrem.fromEquirectangular(exr).texture
     pmrem.dispose()
     exr.mapping = THREE.EquirectangularReflectionMapping
     scene.background = exr
-    scene.environment = envmap
+    // scene.environment = envmap
+    regions2lights(mediancut(exr.image.data, exr.image.width, exr.image.height, 3, true), lights, 40, 20, 20, 256, 0.005)
     loaded += 1
   })
   pmrem.compileEquirectangularShader()
@@ -99,9 +104,9 @@ Ammo().then(ammo => {
   document.body.appendChild(renderer.domElement)
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.outputEncoding = THREE.sRGBEncoding
-  renderer.physicallyCorrectLights = true
+  // renderer.physicallyCorrectLights = true
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFShadowMap
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(
@@ -128,7 +133,7 @@ Ammo().then(ammo => {
 
   const floor = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(40, 40),
-    new THREE.MeshPhysicalMaterial({'color': 0x999999, 'envMapIntensity': 0.2, 'roughness': 0.35})
+    new THREE.MeshPhysicalMaterial({'color': 0x999999, 'roughness': 0.35})
   )
   scene.add(floor)
   floor.matrixAutoUpdate = false
@@ -143,14 +148,7 @@ Ammo().then(ammo => {
   )
   rbd.setDamping(0.5, 0.5)
 
-  const light = new THREE.DirectionalLight(0xffeecc, 1)
-  scene.add(light)
-  light.castShadow = true
-  light.position.x = 6
-  light.position.y = 10
-  light.position.z = 10
-  light.shadow.mapSize = new THREE.Vector2(1024, 1024)
-  light.shadow.radius = 5
+  scene.add(lights)
 
   function animate() {
     if (loaded == 31) {
@@ -195,13 +193,11 @@ Ammo().then(ammo => {
     mesh.material = [
       new THREE.MeshPhysicalMaterial({
         'color': `hsl(${i*360/dice.length}, 97%, 25%)`,
-        'envMapIntensity': 0.2,
         'ior': 1.2,
         'roughness': 0.12
       }),
       new THREE.MeshPhysicalMaterial({
         'color': 0xcccccc,
-        'envMapIntensity': 0.2,
         'ior': 1.2,
         'roughness': 0.2,
         'transparent': true
